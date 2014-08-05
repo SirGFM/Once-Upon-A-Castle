@@ -149,8 +149,17 @@ function addFloor()
 }
 
 var cameraSpeed:float=1;
+var lastpoint:float;
 function cameraMovement()
 {	
-	var y:float=Camera.main.transform.position.y+Input.GetAxis("Vertical")*Time.deltaTime*cameraSpeed + Input.GetAxis("Mouse ScrollWheel");
+	if(Input.GetMouseButtonDown(0)) lastpoint=Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
+	var dy:float=0;
+	if(Input.GetMouseButton(0)&&Camera.main.ScreenToWorldPoint(Input.mousePosition).x>0)
+	{
+		var point:float=Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
+		dy=point-lastpoint;
+		lastpoint=point;
+	}
+	var y:float=Camera.main.transform.position.y+Input.GetAxis("Vertical")*Time.deltaTime*cameraSpeed + Input.GetAxis("Mouse ScrollWheel") - dy;
 	if(y>1.5&&y<curHeight)Camera.main.transform.position.y=y;
 }
