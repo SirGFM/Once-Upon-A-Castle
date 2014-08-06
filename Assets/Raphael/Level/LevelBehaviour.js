@@ -18,8 +18,13 @@ var castle1:Sprite;
 var castle2:Sprite;
 var castle3:Sprite;
 
+var movecoef:float;
+
 function Start () 
-{
+{	
+	
+	movecoef=Screen.height*1f/400;
+	
 	goldText.text=""+gold;
 	curHeight=3;
 	
@@ -158,9 +163,9 @@ function cameraMovement()
 	{
 		var point:float=Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
 		Debug.Log("LP:"+lastpoint+" P:"+point);
-		dy=point-lastpoint;
+		dy=(point-lastpoint)*movecoef;
 		lastpoint=point;
 	}
-	var y:float=Camera.main.transform.position.y+Input.GetAxis("Vertical")*Time.deltaTime*cameraSpeed + Input.GetAxis("Mouse ScrollWheel") - dy;
+	var y:float=Camera.main.transform.position.y+Input.GetAxis("Vertical")*Time.deltaTime*cameraSpeed + Input.GetAxis("Mouse ScrollWheel") + dy;
 	if(y>1.5&&y<curHeight)Camera.main.transform.position.y=y;
 }
