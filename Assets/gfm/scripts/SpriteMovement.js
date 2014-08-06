@@ -5,8 +5,32 @@ var direction:String = "right";
 var speed:float = 0.5f;
 var randomDir:int = 0;
 
-var doSin:boolean = false;
+/**
+ * When this is set, the sprite is forced to
+ * update to the current position.
+ */
+var forcePosition:boolean = false;
+/**
+ * Enables/Disables the sprite movement
+ */
+var moving:boolean = true;
+/**
+ * Horizontal displacement; used for animations
+ */
+var dX:float = 0.0f;
+/**
+ * Vertical displacement; used for animations
+ */
 var dY:float = 0.0f;
+
+/**
+ * Store the current X position (so it can be animated)
+ */
+private var curY:float;
+/**
+ * Store the current Y position (so it can be animated)
+ */
+private var curX:float;
 
 private var lastDir:String;
 private var minY:float;
@@ -19,48 +43,35 @@ function Start() {
 		setDirection("right");
 	else if (randomDir == 2)
 		setDirection("left");
-	minY = transform.position.y;
+	setPos(transform.position.x, transform.position.y);
 }
 
 function Update() {
-	var delta:float = 0.0f;
-	if (time > 0.0f) {
-		time -= Time.deltaTime;
-		if (time > maxtime*0.5f)
-			transform.position.y = minY + Mathf.Lerp(0.0f, 0.25f, maxtime - time);
-		else if (time > 0.0f)
-			transform.position.y = minY + Mathf.Lerp(0.0f, 0.25f, time);
-		else {
-			transform.position.y = minY;
-			thr = 0.0f;
-			time = -2.0f;
-		}
-		if (lastDir == "right")
-			delta = thr;
-		else
-			delta = -thr;
+	if (moving) {
+		// Update logical position
+		if (direction == "right")
+			curX += speed * Time.deltaTime;
+		else if (direction == "left")
+			curX -= speed * Time.deltaTime;
 	}
-	else if (time < 0.0f) {
-		time += Time.deltaTime;
-		if (time >= 0.0f)
-			time = 0.0f;
+	// Update "physical" position
+	transform.position.x = curX + dX;
+	transform.position.y = curY + dY;
+	// Check if the physical position should be set as logical
+	if (forcePosition) {
+		curX += dX;
+		curY += dY;
 	}
-	
-	if (direction == "right")
-		transform.position.x += (speed-delta) * Time.deltaTime;
-	else if (direction == "left")
-		transform.position.x -= (speed-delta) * Time.deltaTime;
-	
-	if (doSin)
-		transform.position.y = minY + dY;
 }
 
 function OnTriggerEnter2D(other:Collider2D) {
+	// When touch a wall
 	if (other.tag.Contains("wall")) {
+		// Destroy it, if it's a projectile
 		if (tag == "projectile")
 			Destroy(gameObject);
+		// Otherwise, change direction as necessary
 		else if (other.tag.Contains("right") && direction != "right") {
-			//animator.SetTrigger("changeDirection");
 			animator.SetBool("direction", true);
 			direction = "right";
 		}
@@ -70,6 +81,23 @@ function OnTriggerEnter2D(other:Collider2D) {
 			direction = "left";
 		}
 	}
+}
+
+function addX(val:float) {
+	curX += val;
+}
+function addY(val:float) {
+	curY += val;
+}
+function setX(val:float) {
+	curX = val;
+}
+function setY(val:float) {
+	curY = val;
+}
+function setPos(X:float, Y:float) {
+	setX(X);
+	setY(Y);
 }
 
 function setDirection(Dir:String) {

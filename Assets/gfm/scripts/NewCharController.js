@@ -49,7 +49,6 @@ function Update () {
 	else if (action == "dinner") {
 		if (doCenter()) {
 			enterDinner();
-			action = "none";
 		}
 	}
 	else if (action != "wait" && action != "attack")
@@ -71,22 +70,28 @@ function doCenter():boolean {
 function goUpstairs() {
 	if (action == "wait")
 		return;
-	animator.SetTrigger("stairs");
-	sprMovement.enabled = false;
 	action = "wait";
-	yield WaitForSeconds(1.0f);
-	animator.SetTrigger("finishStairs");
+	sprMovement.moving = false;
+	animator.SetTrigger("stairs");
+}
+
+// Called by the animation
+function finishUpstairs() {
+	if (action == "none")
+		return;
 	action = "move";
-	sprMovement.enabled = true;
-	transform.position.y += 1.5;
+	sprMovement.moving = true;
+	sprMovement.addY(1.5f);
+	sprMovement.dY = 0.0f;
 }
 
 function enterDinner() {
 	if (action == "none")
 		return;
+	action = "none";
+	sprMovement.moving = false;
 	animator.SetTrigger("stairs");
-	animator.SetTrigger("wooble");
-	yield WaitForSeconds(1.0f);
+	animator.SetBool("wooble", true);
 }
 
 function OnTriggerStay2D(other:Collider2D) {
@@ -116,14 +121,16 @@ function OnTriggerStay2D(other:Collider2D) {
 			else if (action == "none") {
 				// left
 				if (room.button == 2) {
+					sprMovement.dY = 0.0f;
 					sprMovement.setDirection("left");
-					animator.SetTrigger("finishStairs");
+					animator.SetBool("wooble", false);
 					action = "move";
 				}
 				// right
 				else if (room.button == 3) {
+					sprMovement.dY = 0.0f;
 					sprMovement.setDirection("right");
-					animator.SetTrigger("finishStairs");
+					animator.SetBool("wooble", false);
 					action = "move";
 				}
 			}
