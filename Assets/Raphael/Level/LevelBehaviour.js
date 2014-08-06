@@ -154,9 +154,10 @@ function cameraMovement()
 {	
 	if(Input.GetMouseButtonDown(0)) lastpoint=Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
 	var dy:float=0;
-	if(Input.GetMouseButton(0)&&Camera.main.ScreenToWorldPoint(Input.mousePosition).x>0)
+	if(Input.GetMouseButton(0)&&Camera.main.ScreenToWorldPoint(Input.mousePosition).x>2)
 	{
 		var point:float=Camera.main.ScreenToWorldPoint(Input.mousePosition).y;
+		Debug.Log("LP:"+lastpoint+" P:"+point);
 		dy=point-lastpoint;
 		lastpoint=point;
 	}
