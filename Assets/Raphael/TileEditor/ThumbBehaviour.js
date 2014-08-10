@@ -8,9 +8,12 @@ var active:boolean=false;
 var skin:GUISkin;
 var textset:boolean=false;
 
+private var castleHnd:SceneHandler;
+
 function Start () 
 {
 	text=GameObject.FindGameObjectWithTag("Text").guiText;
+	castleHnd = GameObject.FindGameObjectWithTag("CastleHandler").GetComponent(SceneHandler) as SceneHandler;
 }
 
 function OnMouseDown () 
@@ -38,7 +41,8 @@ function Update()
 	var contains:boolean=guiTexture.GetScreenRect().Contains (Input.mousePosition);
 	if (drag&&!contains&&(GameObject.FindGameObjectWithTag("Manager").GetComponent(LevelBehaviour) as LevelBehaviour).canAddGold(-1*price))
 	{
-		var temp:Transform=Instantiate(phantom);
+		//var temp:Transform=Instantiate(phantom);
+		var temp:Transform = castleHnd.getPhantom(phantom);
 		(temp.GetComponent(PhantomBehaviour) as PhantomBehaviour).price=price;
 		drag=false;
 	}
