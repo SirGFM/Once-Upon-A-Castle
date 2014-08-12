@@ -21,6 +21,10 @@ private var _isDraggingPhantom:boolean;
  */
 private var curTarget:Transform;
 /**
+ * Price for the current structure
+ */
+private var curPrice:int;
+/**
  * Array containing every floor and its rooms
  */
 private var _floors:Array;
@@ -40,6 +44,8 @@ private var _curRoom:int;
  * Current floor the mouse is over
  */
 private var _curFloor:int;
+private var _manager:LevelBehaviour;
+private var _clicked:boolean = false;
 
 /**
  * Run as soon as the object was instantiated
@@ -47,6 +53,8 @@ private var _curFloor:int;
 function Awake() {
 	var rb:Rigidbody2D;
 	var obj:GameObject;
+	// Get the level behaviour
+	_manager = GameObject.FindGameObjectWithTag("Manager").GetComponent(LevelBehaviour) as LevelBehaviour;
 	// Try to get the rigid body and, if can't find one, create one
 	rb = GetComponent(Rigidbody2D) as Rigidbody2D;
 	if (!rb) {
@@ -123,42 +131,93 @@ function Update() {
 			// Change the current room to red or green
 			room = getRoom(_curFloor, _curRoom);
 			if (room)
-				if (room.tag == "EmptyRoom")
+				if (room.tag == "EmptyRoom" && curTarget.tag != "EmptyRoom")
 					room.renderer.material.color = Color.green;
-				else
+				else if (room.tag != "EmptyRoom" && curTarget.tag == "EmptyRoom")
 					room.renderer.material.color = Color.red;
 		}
 	}
+	else {
+		checkMouseOver();
+	}
+}
+
+private var stayBhv:RoomBehaviour = null;
+private function checkMouseOver() {
+	var room:Transform;
+	var changedRoom:boolean;
+	// If changed room, exit the previous one
+	changedRoom = _curRoom != _prevRoom || _curFloor != _prevFloor;
+	if (changedRoom && stayBhv) {
+		stayBhv.OnMouseExit();
+	}
+	// Get the current room, and check if requires mouse over
+	room = getRoom(_curFloor, _curRoom);
+	if (!room || room.tag != "DinnerRoom") {
+		stayBhv = null;
+		return;
+	}
+	// If it's a valid and new room, get its RoomBehaviour
+	if (changedRoom || !stayBhv) {
+		stayBhv = room.GetComponent(RoomBehaviour) as RoomBehaviour;
+		if (!stayBhv)
+			return;
+	}
+	// Call its onMouseOver
+	stayBhv.OnMouseOver();
+}
+
+function OnMouseDown() {
+	_clicked = true;
+	yield WaitForSeconds(0.3);
+	_clicked = false;
 }
 
 function OnMouseUp () {
 	var room:Transform;
 	
+	// Either way, the current room will be needed, so already check for it
+	room = getRoom(_curFloor, _curRoom);
+	if (!room)
+		return;
+	
 	// Check if was dragging a phantom
 	if (_isDraggingPhantom) {
 		_isDraggingPhantom = false;
-		room = getRoom(_curFloor, _curRoom);
-		if (room)
-			if (room.tag == "EmptyRoom") {
-				var newRoom:Transform;
-				newRoom = GameObject.Instantiate(curTarget);
-				newRoom.position = room.position;
-				(_floors[_curFloor] as Array)[_curRoom] = newRoom;
-				GameObject.Destroy(room.gameObject);
-			}
-			else
-				room.renderer.material.color = Color.white;
+		// Check if dragging anything but an EmptyRoom over an EmptyRoom
+		if (room.tag == "EmptyRoom" && curTarget.tag != "EmptyRoom") {
+			var newRoom:Transform;
+			_manager.addGold(-1*curPrice);
+			newRoom = GameObject.Instantiate(curTarget);
+			newRoom.position = room.position;
+			(_floors[_curFloor] as Array)[_curRoom] = newRoom;
+			GameObject.Destroy(room.gameObject);
+		}
+		else if (room.tag != "EmptyRoom" && curTarget.tag == "EmptyRoom") {
+			// TODO add gold when an empty room is put
+		}
+		else
+			room.renderer.material.color = Color.white;
 	}
-	else {
+	else if (_clicked && room.tag != "EmptyRoom") {
 		// Check room on this position and call it's action
+		(room.GetComponent(RoomBehaviour) as RoomBehaviour).OnMouseDown();
 	}
+	
+	curTarget = null;
 }
 
 function getPhantom(phantom:Transform):Transform {
 	var curPhantom:Transform;
+	var phantomBhv:PhantomBehaviour;
+	
 	_isDraggingPhantom = true;
 	curPhantom = GameObject.Instantiate(phantom);
-	curTarget = (curPhantom.GetComponent(PhantomBehaviour) as PhantomBehaviour).room;
+	phantomBhv = curPhantom.GetComponent(PhantomBehaviour) as PhantomBehaviour;
+	
+	curTarget = phantomBhv.room;
+	curPrice = phantomBhv.price;
+	
 	return curPhantom;
 }
 

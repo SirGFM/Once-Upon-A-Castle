@@ -1,7 +1,6 @@
 ﻿#pragma strict
 
 var animator:Animator;
-var direction:String = "right";
 var speed:float = 0.5f;
 var randomDir:int = 0;
 
@@ -10,10 +9,11 @@ var randomDir:int = 0;
  * update to the current position.
  */
 var forcePosition:boolean = false;
+private var _direction:String = "right";
 /**
  * Enables/Disables the sprite movement
  */
-var moving:boolean = true;
+private var _moving:boolean = true;
 /**
  * Horizontal displacement; used for animations
  */
@@ -40,9 +40,9 @@ private var time:float = 0.0f;
 
 function Start() {
 	if (randomDir == 1)
-		setDirection("right");
+		direction = "right";
 	else if (randomDir == 2)
-		setDirection("left");
+		direction = "left";
 	setPos(transform.position.x, transform.position.y);
 }
 
@@ -114,4 +114,23 @@ function Throw(Strength:float) {
 	minY = transform.position.y;
 	thr = Strength;
 	time = maxtime;
+}
+
+function set direction(value:String) {
+	_direction = value;
+	if (value != "none")
+		animator.SetBool("direction", value == "right");
+}
+
+function get direction():String {
+	return _direction;
+}
+
+function set moving(value:boolean) {
+	_moving = value;
+	animator.SetBool("moving", value);
+}
+
+function get moving():boolean {
+	return _moving;
 }

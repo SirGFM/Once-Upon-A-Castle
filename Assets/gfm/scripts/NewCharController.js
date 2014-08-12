@@ -18,6 +18,8 @@ var myaudio2:AudioSource;
 var myaudio3:AudioSource;
 static private var playingSound:boolean = false;
 
+private var roomBhv:RoomBehaviour = null;
+
 enum myClasses {
 	NONE,
 	CHICKEN,
@@ -34,12 +36,15 @@ function Start () {
 	sprMovement = GetComponent(SpriteMovement) as SpriteMovement;
 	atkBhv = GetComponent(AttackBehaviour) as AttackBehaviour;
 	action = "move";
+	sprMovement.moving = true;
 }
 
 function Update () {
+	if (roomBhv)
+		checkRoom();
 	if (action == "move") {
 		if (sprMovement.direction == "none") {
-			sprMovement.setDirection("right");
+			sprMovement.direction = "right";
 		}
 	}
 	else if (action == "stairs") {
@@ -48,7 +53,7 @@ function Update () {
 	}
 	else if (action == "dinner") {
 		if (doCenter()) {
-			enterDinner();
+			goDinner();
 		}
 	}
 	else if (action != "wait" && action != "attack")
@@ -61,9 +66,9 @@ function doCenter():boolean {
 	if (Mathf.Abs(dist) < 0.05f)
 		return true;
 	else if (sprMovement.direction == "right" && dist > 0)
-		sprMovement.setDirection("left");
+		sprMovement.direction = "left";
 	else if (sprMovement.direction == "left" && dist < 0)
-		sprMovement.setDirection("right");
+		sprMovement.direction = "right";
 	return false;
 }
 
@@ -71,38 +76,107 @@ function goUpstairs() {
 	if (action == "wait")
 		return;
 	action = "wait";
+	animator.SetBool("stairs", true);
 	sprMovement.moving = false;
-	animator.SetTrigger("stairs");
+}
+
+function goDinner() {
+	if (action == "none")
+		return;
+	action = "none";
+	animator.SetBool("wooble", true);
+	sprMovement.moving = false;
 }
 
 // Called by the animation
 function finishUpstairs() {
-	if (action == "none")
-		return;
 	action = "move";
-	sprMovement.moving = true;
 	sprMovement.addY(1.5f);
 	sprMovement.dY = 0.0f;
+	sprMovement.moving = true;
+	animator.SetBool("stairs", false);
 }
 
-function enterDinner() {
-	if (action == "none")
+function finishDinner() {
+	sprMovement.dY = 0.0f;
+	animator.SetBool("wooble", false);
+}
+
+function checkRoom() {
+	if (!roomBhv)
 		return;
-	action = "none";
-	sprMovement.moving = false;
-	animator.SetTrigger("stairs");
-	animator.SetBool("wooble", true);
+	if (action != "wait" && roomBhv.tag == "Stairs" && roomBhv.click) {
+		action = "stairs";
+		targetX = roomBhv.transform.renderer.bounds.center.x;
+	}
+	else if (roomBhv.tag == "NurseryRoom" && roomBhv.click) {
+		atkBhv.giveHealth(5);
+	}
+	else if (roomBhv.tag == "WeaponsRoom" && roomBhv.click) {
+		Debug.Log("here!");
+		if (didDecGold() && curClass != myClasses.ZOU) {
+			Debug.Log(curClass);
+			setClass(curClass+1);
+		}
+	}
+	else if (roomBhv.tag == "DinnerRoom") {
+		if (roomBhv.click) {
+			// TODO check capacity
+			// home
+			if (roomBhv.button == 1 && (action != "dinner" && action != "none")) {
+				action = "dinner";
+				targetX = roomBhv.transform.renderer.bounds.center.x + Random.Range(-0.15f, 0.15f);
+			}
+			else if (action == "none") {
+				// left
+				if (roomBhv.button == 2) {
+					sprMovement.dY = 0.0f;
+					action = "move";
+					sprMovement.direction = "left";
+					sprMovement.moving = true;
+				}
+				// right
+				else if (roomBhv.button == 3) {
+					sprMovement.dY = 0.0f;
+					action = "move";
+					sprMovement.direction = "right";
+					sprMovement.moving = true;
+				}
+			}
+		}
+	}
 }
 
+function OnTriggerEnter2D(other:Collider2D) {
+	// Try to get the current room behaviour
+	if (other.tag == "Stairs" || other.tag.Contains("Room")) {
+		roomBhv = other.GetComponent(RoomBehaviour) as RoomBehaviour;
+	}
+}
+
+function OnTriggerExit2D(other:Collider2D) {
+	// Check if it's exiting the room
+	if (other.transform == roomBhv.transform)
+		roomBhv = null;
+}
+
+/*
 function OnTriggerStay2D(other:Collider2D) {
-	if (action != "wait" && other.tag == "Stairs" && (other.GetComponent(RoomBehaviour) as RoomBehaviour).click == true) {
+	var room:RoomBehaviour;
+	Debug.Log(other.tag);
+	if (other.tag == "Stairs" || other.tag.Contains("Room")) {
+		Debug.Log("room!");
+		Debug.Break();
+		room = other.GetComponent(RoomBehaviour) as RoomBehaviour;
+	}
+	if (action != "wait" && other.tag == "Stairs" && room.click) {
 		action = "stairs";
 		targetX = other.renderer.bounds.center.x;
 	}
-	else if (other.tag == "NurseryRoom" && (other.GetComponent(RoomBehaviour) as RoomBehaviour).click == true) {
+	else if (other.tag == "NurseryRoom" && room.click) {
 		atkBhv.giveHealth(5);
 	}
-	else if (other.tag == "WeaponsRoom" && (other.GetComponent(RoomBehaviour) as RoomBehaviour).click == true) {
+	else if (other.tag == "WeaponsRoom" && room.click) {
 		Debug.Log("here!");
 		if (didDecGold() && curClass != myClasses.ZOU) {
 			Debug.Log(curClass);
@@ -110,8 +184,7 @@ function OnTriggerStay2D(other:Collider2D) {
 		}
 	}
 	else if (other.tag == "DinnerRoom") {
-		var room:RoomBehaviour = other.GetComponent(RoomBehaviour) as RoomBehaviour;
-		if (room.click == true) {
+		if (room.click) {
 			// TODO check capacity
 			// home
 			if (room.button == 1 && (action != "dinner" && action != "none")) {
@@ -122,14 +195,14 @@ function OnTriggerStay2D(other:Collider2D) {
 				// left
 				if (room.button == 2) {
 					sprMovement.dY = 0.0f;
-					sprMovement.setDirection("left");
+					sprMovement.direction = "left";
 					animator.SetBool("wooble", false);
 					action = "move";
 				}
 				// right
 				else if (room.button == 3) {
 					sprMovement.dY = 0.0f;
-					sprMovement.setDirection("right");
+					sprMovement.direction = "right";
 					animator.SetBool("wooble", false);
 					action = "move";
 				}
@@ -137,6 +210,7 @@ function OnTriggerStay2D(other:Collider2D) {
 		}
 	}
 }
+*/
 
 function playSound(audiotoplay:AudioSource) {
 	if (playingSound)

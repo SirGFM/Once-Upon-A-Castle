@@ -21,14 +21,12 @@ function Start ()
 		if(Random.Range(-1,1)==0)
 		{
 			person.position.x=-3.3;
-			script.direction ="right";
-			script.animator.SetBool("direction", true);
+			script.direction="right";
 		}
 		else
 		{
 			person.position.x=3.3;
 			script.direction="left";
-			script.animator.SetBool("direction", false);
 		}
 		var rnd:float;
 		rnd = Random.Range(0.0f, 1.0f);
@@ -44,7 +42,6 @@ function Start ()
 		yield WaitForSeconds(spawnSpeed);
 	}
 }
-
 
 function Update () 
 {
