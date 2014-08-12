@@ -20,23 +20,30 @@ var castle3:Sprite;
 
 var movecoef:float;
 
+private var castleHnd:SceneHandler;
+
 function Start () 
 {	
+	// Get the SceneHandler
+	castleHnd = GameObject.FindGameObjectWithTag("CastleHandler").GetComponent(SceneHandler) as SceneHandler;
 	
 	movecoef=Screen.height*1f/400;
 	
 	goldText.text=""+gold;
 	curHeight=3;
 	
+	// Already being done by SceneHandler
 	//instancia o andar 1: 1.5
-	Instantiate(castle,Vector3(0,1.5,0),Quaternion(0,0,0,1));
+	//Instantiate(castle,Vector3(0,1.5,0),Quaternion(0,0,0,1));
+	castle = castleHnd.getCastle(Vector3(0,1.5,0),Quaternion(0,0,0,1));
+	
 	//instancia os monstros do andar 1
 	var temp:Transform;
 	temp=Instantiate(slime);temp.position.y+=1.5;temp.position.x=Random.Range(-2.0,2.0);
 	temp=Instantiate(slime);temp.position.y+=3;temp.position.x=Random.Range(-2.0,2.0);
 	temp=Instantiate(slime);temp.position.y+=3;temp.position.x=Random.Range(-2.0,2.0);
 	//instancia o andar 2: 4.5
-	Instantiate(castle,Vector3(0,curHeight+1.5,0),Quaternion(0,0,0,1));
+	castle = castleHnd.getCastle(Vector3(0,curHeight+1.5,0),Quaternion(0,0,0,1));
 }
 
 function Update () {
@@ -140,7 +147,9 @@ function addFloor()
 	floor++;
 	addEnemies();
 	var tmp:Transform;
-	tmp = Instantiate(castle,Vector3(0,curHeight+1.5+3,0),Quaternion(0,0,0,1)) as Transform;
+	tmp = castleHnd.getCastle(Vector3(0,curHeight+1.5,0),Quaternion(0,0,0,1));
+	castleHnd.numFloors = 3 + floor * 2;
+	//tmp = Instantiate(castle,Vector3(0,curHeight+1.5+3,0),Quaternion(0,0,0,1)) as Transform;
 	/*
 	var rnd:float = Random.Range(0.0f, 1.0f);
 	if (rnd < 0.33f)

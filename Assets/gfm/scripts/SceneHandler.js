@@ -5,6 +5,10 @@
  */
 var firstFloorPrefab:GameObject;
 /**
+ * Prefab for basic castle floor
+ */
+var castle:Transform;
+/**
  * Object' hitbox; height is managed by code
  */
 private var hb:BoxCollider2D;
@@ -219,6 +223,10 @@ function getPhantom(phantom:Transform):Transform {
 	curPrice = phantomBhv.price;
 	
 	return curPhantom;
+}
+
+function getCastle(v3:Vector3, q:Quaternion):Transform {
+	return GameObject.Instantiate(castle, v3, q);
 }
 
 private function getRoom(floor:int, room:int) {

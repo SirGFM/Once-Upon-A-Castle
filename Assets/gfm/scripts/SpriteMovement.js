@@ -31,6 +31,14 @@ private var curY:float;
  * Store the current Y position (so it can be animated)
  */
 private var curX:float;
+/**
+ * Whether already touched a wall that sends you right
+ */
+private var enteredWallRight:boolean = false;
+/**
+ * Whether already touched a wall that sends you left
+ */
+private var enteredWallLeft:boolean = false;
 
 private var lastDir:String;
 private var minY:float;
@@ -54,6 +62,19 @@ function Update() {
 		else if (direction == "left")
 			curX -= speed * Time.deltaTime;
 	}
+	// Check if going over a wall and block it
+	if (enteredWallRight && curX + dX < -2.0f) {
+		curX = -2.0f;
+		dX = 0.0f;
+		if (direction != "right")
+			direction = "right";
+	}
+	else if (enteredWallLeft && curX + dX > 2.0f) {
+		curX = 2.0f;
+		dX = 0.0f;
+		if (direction != "left")
+			direction = "left";
+	}
 	// Update "physical" position
 	transform.position.x = curX + dX;
 	transform.position.y = curY + dY;
@@ -71,15 +92,10 @@ function OnTriggerEnter2D(other:Collider2D) {
 		if (tag == "projectile")
 			Destroy(gameObject);
 		// Otherwise, change direction as necessary
-		else if (other.tag.Contains("right") && direction != "right") {
-			animator.SetBool("direction", true);
-			direction = "right";
-		}
-		else if (other.tag.Contains("left") && direction != "left") {
-			//animator.SetTrigger("changeDirection");
-			animator.SetBool("direction", false);
-			direction = "left";
-		}
+		else if (!enteredWallRight && other.tag.Contains("right") && direction != "right")
+			enteredWallRight = true;
+		else if (!enteredWallLeft && other.tag.Contains("left") && direction != "left")
+			enteredWallLeft = true;
 	}
 }
 
