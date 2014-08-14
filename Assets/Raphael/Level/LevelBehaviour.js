@@ -34,9 +34,10 @@ function Start ()
 	
 	// Already being done by SceneHandler
 	//instancia o andar 1: 1.5
+	castleHnd.numFloors = 1;
 	//Instantiate(castle,Vector3(0,1.5,0),Quaternion(0,0,0,1));
 	castle = castleHnd.getCastle(Vector3(0,1.5,0),Quaternion(0,0,0,1));
-	
+	castleHnd.numFloors = 3;
 	//instancia os monstros do andar 1
 	var temp:Transform;
 	temp=Instantiate(slime);temp.position.y+=1.5;temp.position.x=Random.Range(-2.0,2.0);
@@ -44,6 +45,7 @@ function Start ()
 	temp=Instantiate(slime);temp.position.y+=3;temp.position.x=Random.Range(-2.0,2.0);
 	//instancia o andar 2: 4.5
 	castle = castleHnd.getCastle(Vector3(0,curHeight+1.5,0),Quaternion(0,0,0,1));
+	castleHnd.numFloors = 5;
 }
 
 function Update () {

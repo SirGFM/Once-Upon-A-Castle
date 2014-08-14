@@ -9,7 +9,7 @@ var randomDir:int = 0;
  * update to the current position.
  */
 var forcePosition:boolean = false;
-private var _direction:String = "right";
+private var _direction:String = "none";
 /**
  * Enables/Disables the sprite movement
  */
@@ -46,38 +46,42 @@ private var thr:float = 0.0f;
 private var maxtime:float = 0.5f;
 private var time:float = 0.0f;
 
+private var rgbd:Rigidbody2D;
+
 function Start() {
+	setPos(transform.position.x, transform.position.y);
+}
+
+function Awake() {
+	// Get the component's rigidbody
+	rgbd = GetComponent(Rigidbody2D) as Rigidbody2D;
+	if (!rgbd)
+		enabled = false;
+	// Set its direction and speed
 	if (randomDir == 1)
 		direction = "right";
 	else if (randomDir == 2)
 		direction = "left";
-	setPos(transform.position.x, transform.position.y);
 }
 
 function Update() {
-	if (moving) {
-		// Update logical position
-		if (direction == "right")
-			curX += speed * Time.deltaTime;
-		else if (direction == "left")
-			curX -= speed * Time.deltaTime;
-	}
+	
 	// Check if going over a wall and block it
-	if (enteredWallRight && curX + dX < -2.0f) {
-		curX = -2.0f;
+	if (enteredWallRight && transform.position.x < -2.0f) {
+		transform.position.x = -2.0f;
 		dX = 0.0f;
 		if (direction != "right")
 			direction = "right";
 	}
-	else if (enteredWallLeft && curX + dX > 2.0f) {
-		curX = 2.0f;
+	else if (enteredWallLeft && transform.position.x > 2.0f) {
+		transform.position.x = 2.0f;
 		dX = 0.0f;
 		if (direction != "left")
 			direction = "left";
 	}
 	// Update "physical" position
-	transform.position.x = curX + dX;
-	transform.position.y = curY + dY;
+	//transform.position.x = curX + dX;
+	//transform.position.y = curY + dY;
 	// Check if the physical position should be set as logical
 	if (forcePosition) {
 		curX += dX;
@@ -133,6 +137,15 @@ function Throw(Strength:float) {
 }
 
 function set direction(value:String) {
+	if (rgbd && value != _direction) {
+		if (value == "right") {
+			rgbd.velocity.x = Mathf.Abs(speed);
+		}
+		else if (value == "left")
+			rgbd.velocity.x = -Mathf.Abs(speed);
+		else
+			rgbd.velocity.x = 0;
+	}
 	_direction = value;
 	if (value != "none")
 		animator.SetBool("direction", value == "right");
@@ -143,8 +156,15 @@ function get direction():String {
 }
 
 function set moving(value:boolean) {
-	_moving = value;
 	animator.SetBool("moving", value);
+	if (!value)
+		rgbd.velocity.x = 0;
+	else
+		if (_direction == "right")
+			rgbd.velocity.x = Mathf.Abs(speed);
+		else if (_direction == "left")
+			rgbd.velocity.x = -Mathf.Abs(speed);
+	_moving = value;
 }
 
 function get moving():boolean {

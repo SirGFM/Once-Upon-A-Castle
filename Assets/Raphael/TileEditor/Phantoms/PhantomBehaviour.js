@@ -10,7 +10,8 @@ function Update ()
 {
 	if(Input.GetMouseButtonUp(0))
 	{
-		temp.renderer.material.color=Color.white;
+		if (temp && temp.renderer)
+			temp.renderer.material.color=Color.white;
 		if(!empty)
 		{
 			if(temp!=this.collider2D&&(temp.gameObject.tag=="EmptyRoom"))
@@ -50,13 +51,15 @@ function OnTriggerStay2D(other: Collider2D)
 	{
 		temp.renderer.material.color=Color.white;
 		temp=other;
-		if(other.tag!="EmptyRoom")
-		{
-			other.renderer.material.color=Color.red;
+		if (other.renderer && other.renderer.material) {
+			if(other.tag!="EmptyRoom")
+			{
+				other.renderer.material.color=Color.red;
+			}
+			else
+			{
+				other.renderer.material.color=Color.green;
+			};
 		}
-		else
-		{
-			other.renderer.material.color=Color.green;
-		};
 	}
 }

@@ -74,44 +74,16 @@ function Awake() {
 	// Set hitbox's width
 	hb.size.x = 7.0f;
 	// Set hitbox's position and height
-	numFloors = 3;
+	numFloors = 1;
 	// Make it a trigger only
 	hb.isTrigger = true;
 	_isDraggingPhantom = false;
 	// Create first floor
 	obj = GameObject.Instantiate(firstFloorPrefab) as GameObject;
 	// Add it, and its children, to the list
-	_floors = new Array(20);
-	var _rooms:Array = new Array(4);
-	_floors[0] = _rooms;
+	_floors = new Array(40);
 	// This is a really lazy/ugly way to get the children... but it works
-	for (var child:Transform in obj.transform) {
-		if (child.name == "Empty Room 0")
-			_rooms[0] = child;
-		else if (child.name == "Empty Room 1")
-			_rooms[1] = child;
-		else if (child.name == "Empty Room 2")
-			_rooms[2] = child;
-		else if (child.name == "Empty Room 3")
-			_rooms[3] = child;
-	}
-}
-
-/**
- * @return How many floors there are curently
- */
-function get numFloors():int {
-	return _numFloors;
-}
-
-/**
- * Set the current number of floors and the hitbox height
- */
-function set numFloors(value:int) {
-	_numFloors = value;
-	// Set the attributes
-	hb.size.y = value*1.5f;
-	hb.center.y = value*0.75f;
+	_floors[0] = getRoomArr(obj.transform);
 }
 
 /**
@@ -172,6 +144,7 @@ private function checkMouseOver() {
 }
 
 function OnMouseDown() {
+	Debug.Log("OnMouseDown");
 	_clicked = true;
 	yield WaitForSeconds(0.3);
 	_clicked = false;
@@ -211,6 +184,23 @@ function OnMouseUp () {
 	curTarget = null;
 }
 
+/**
+ * @return How many floors there are curently
+ */
+function get numFloors():int {
+	return _numFloors;
+}
+
+/**
+ * Set the current number of floors and the hitbox height
+ */
+function set numFloors(value:int) {
+	_numFloors = value;
+	// Set the attributes
+	hb.size.y = value*1.5f;
+	hb.center.y = value*0.75f;
+}
+
 function getPhantom(phantom:Transform):Transform {
 	var curPhantom:Transform;
 	var phantomBhv:PhantomBehaviour;
@@ -226,7 +216,19 @@ function getPhantom(phantom:Transform):Transform {
 }
 
 function getCastle(v3:Vector3, q:Quaternion):Transform {
-	return GameObject.Instantiate(castle, v3, q);
+	var tmp:Transform = GameObject.Instantiate(castle, v3, q);
+	for (var c:Object in tmp) {
+		var child:Transform = c as Transform;
+		if (!child)
+			continue;
+		if (child.name == "Empty Floor 0") {
+			_floors[numFloors] = getRoomArr(child);
+		}
+		else if (child.name == "Empty Floor 1") {
+			_floors[numFloors+1] = getRoomArr(child);
+		}
+	}
+	return tmp;
 }
 
 private function getRoom(floor:int, room:int) {
@@ -240,4 +242,26 @@ private function getRoom(floor:int, room:int) {
 		obj = arr[room] as Transform;
 	// Return the object, if it was found
 	return obj;
+}
+
+private function getRoomArr(parent:Transform):Array {
+	var arr:Array = new Array(4);
+	for (var c:Object in parent) {
+		var child:Transform = c as Transform;
+		if (!child)
+			continue;
+		if (child.name == "Empty Room 0") {
+			arr[0] = child;
+		}
+		else if (child.name == "Empty Room 1") {
+			arr[1] = child;
+		}
+		else if (child.name == "Empty Room 2") {
+			arr[2] = child;
+		}
+		else if (child.name == "Empty Room 3") {
+			arr[3] = child;
+		}
+	}
+	return arr;
 }

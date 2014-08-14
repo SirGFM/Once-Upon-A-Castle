@@ -91,7 +91,8 @@ function goDinner() {
 // Called by the animation
 function finishUpstairs() {
 	action = "move";
-	sprMovement.addY(1.5f);
+	transform.position.y += 1.5f;
+	roomBhv = null;
 	sprMovement.dY = 0.0f;
 	sprMovement.moving = true;
 	animator.SetBool("stairs", false);
@@ -103,8 +104,14 @@ function finishDinner() {
 }
 
 function checkRoom() {
+	// If not over a room, ignore
 	if (!roomBhv)
 		return;
+	// If it's not actually over the room, also exit
+	if (!roomBhv.transform.renderer.bounds.Intersects(transform.renderer.bounds)) {
+		roomBhv = null;
+		return;
+	}
 	if (action != "wait" && roomBhv.tag == "Stairs" && roomBhv.click) {
 		action = "stairs";
 		targetX = roomBhv.transform.renderer.bounds.center.x;
@@ -149,14 +156,14 @@ function checkRoom() {
 
 function OnTriggerEnter2D(other:Collider2D) {
 	// Try to get the current room behaviour
-	if (other.tag == "Stairs" || other.tag.Contains("Room")) {
+	if ((other.tag == "Stairs" || other.tag.Contains("Room")) && (!roomBhv || roomBhv.transform != other.transform)) {
 		roomBhv = other.GetComponent(RoomBehaviour) as RoomBehaviour;
 	}
 }
 
 function OnTriggerExit2D(other:Collider2D) {
 	// Check if it's exiting the room
-	if (other.transform == roomBhv.transform)
+	if (roomBhv && other.transform == roomBhv.transform)
 		roomBhv = null;
 }
 
@@ -213,6 +220,7 @@ function OnTriggerStay2D(other:Collider2D) {
 */
 
 function playSound(audiotoplay:AudioSource) {
+/*
 	if (playingSound)
 		return;
 	playingSound = true;
@@ -220,6 +228,7 @@ function playSound(audiotoplay:AudioSource) {
 		audiotoplay.Play();
 	yield WaitForSeconds(1);
 	playingSound = false;
+*/
 }
 
 function addGold(i:int):boolean {

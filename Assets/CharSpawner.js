@@ -17,16 +17,14 @@ function Start ()
 		
 		person = Instantiate(character);
 		script = person.GetComponent(SpriteMovement);
-		script.speed=Random.Range(0.5,0.7);
-		if(Random.Range(-1,1)==0)
-		{
-			person.position.x=-3.3;
-			script.direction="right";
+		script.speed = Random.Range(0.5,0.7);
+		if (Random.Range(-1,1) == 0) {
+			person.position.x = -3.3;
+			script.direction = "right";
 		}
-		else
-		{
-			person.position.x=3.3;
-			script.direction="left";
+		else {
+			person.position.x = 3.3;
+			script.direction = "left";
 		}
 		var rnd:float;
 		rnd = Random.Range(0.0f, 1.0f);
